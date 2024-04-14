@@ -20,15 +20,14 @@ db.create_all()
 def root():
     return redirect('/users')
 
-@app.route('/users')
+@app.route('/users', methods=["GET"])
 def users_page():
-    users = User.query.all()
-    # users = User.query.order_by(User.lastName, User.firstName).all()
+    users = User.query.order_by(User.lastName, User.firstName).all()
     return render_template('users/index.html', users=users)
 
 @app.route('/users/new', methods=["GET"])
 def users_new_form():
-    return render_template('')
+    return render_template('users/form.html')
 
 @app.route('/users/new', methods=["POST"])
 def users_new():
@@ -43,12 +42,31 @@ def users_new():
     db.session.commit()
     return redirect("/users")
 
-@app.route('/users/{int:user_id}')
+@app.route('/users/<int:userid>')
+def users_show(userid):
+    user = User.query.get_or_404(userid)
+    return render_template('users/show.html', user=user)
 
-@app.route('/users/{int:user_id}/edit')
+@app.route('/users/<int:userid>/edit')
+def users_edit(userid):
+    user = User.query.get_or_404(userid)
+    return render_template('users/edit.html', user=user)
 
-@app.route('/users/{int:user_id}', methods=["POST"])
+@app.route('/users/<int:userid>/edit', methods=["POST"])
+def users_update(userid):
+    user = User.query.get_or_404(userid)
+    user.firstName=request.form['firstName'],
+    user.lastName=request.form['lastName'],
+    user.imageUrl=request.form['imageUrl']
+    
+    db.session.add(user)
+    db.session.commit()
+    return redirect("/users")
 
-@app.route('/users/{int:user_id}/delete', methods=["POST"])
-def users_delete(user_id):
+@app.route('/users/<int:userid>/delete', methods=["POST"])
+def users_delete(userid):
+    user = User.query.get_or_404(userid)
+    
+    db.session.delete(user)
+    db.session.commit()
     return redirect("/users")
